@@ -99,6 +99,8 @@ while True:
                         None
                 cv.putText(frame, "ALERTA DE FADIGA!", (10, 30),
                            cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                # [ENVIA SINAL PARA A NUVEM]
+
         else:
             counter = 0
             alarm_on = False
