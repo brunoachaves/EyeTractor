@@ -41,8 +41,8 @@ if args["alarm"] > 0:
     # import rasp IOs libs and set vars
     print("[INFO] using Rasp IO alarm...")
 
-EYE_AR_THRESH = 0.3
-EYE_AR_CONSEC_FRAMES = 16
+EAR_THRESH = 0.3
+EAR_CONSEC_FRAMES = 16
 counter = 0
 alarm_on = False
 ear = 0
@@ -89,9 +89,9 @@ while True:
         cv.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
         cv.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
 
-        if ear < EYE_AR_THRESH:
+        if ear < EAR_THRESH:
             counter += 1
-            if counter >= EYE_AR_CONSEC_FRAMES:
+            if counter >= EAR_CONSEC_FRAMES:
                 if not alarm_on:
                     alarm_on = True
                     if args["alarm"] > 0:
