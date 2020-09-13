@@ -1,3 +1,4 @@
-Face Detection/__pycache__
-custom-dlib-shape-predictor/__pycache__
+*__pycache__*
 custom-dlib-shape-predictor/ibug*
+.idea
+docs

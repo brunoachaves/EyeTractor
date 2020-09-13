@@ -14,3 +14,4 @@ args = vars(ap.parse_args())
 print("[INFO] evaluating shape predictor...")
 error = dlib.test_shape_predictor(args["xml"], args["predictor"])
 print("[INFO] error: {}".format(error))
+
