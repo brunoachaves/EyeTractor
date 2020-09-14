@@ -1,12 +1,13 @@
 import cv2 as cv
 import time
+import numpy as np
 
 rasp = False
 if rasp:
     from tflite_runtime.interpreter import Interpreter
 else:
     import tensorflow as tf
-tf.keras.layers.bn = False
+
 
 palette = {
     "black": (34, 40, 39),
@@ -75,7 +76,7 @@ cap = cv.VideoCapture(0)
 time.sleep(1.0)
 
 while True:
-
+    begin = time.time()
     ret, frame = cap.read()
 
     img_result = clf.predict(frame)
@@ -88,5 +89,5 @@ while True:
     # if the `q` key was pressed, break from the loop
     if key == ord("q"):
         break
-
+    print(f'took {np.round(time.time() - begin, 2)}seg')
 cv.destroyAllWindows()

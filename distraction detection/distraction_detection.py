@@ -4,6 +4,7 @@ import time
 import dlib
 import cv2 as cv
 
+
 palette = {
     "black": (34, 40, 39),
     "pink": (114, 38, 249),
@@ -42,12 +43,14 @@ EAR_CONSEC_FRAMES = 16
 counter = 0
 alarm_on = False
 ear = 0
-cascade_file = 'haarcascade_frontalface_default.xml'
+cascade_face = 'haarcascade_frontalface_default.xml'
+cascade_ear = ' haarcascade_mcs_rightear.xml'
 landmarks_file = 'shape_predictor_68_face_landmarks.dat'
 
 print("[INFO] loading facial landmark predictor...")
-detector = cv.CascadeClassifier(cascade_file)
-predictor = dlib.shape_predictor(landmarks_file)
+ear_detector = cv.CascadeClassifier(cascade_ear)
+face_detector = cv.CascadeClassifier(cascade_face)
+landmarks_predictor = dlib.shape_predictor(landmarks_file)
 
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
 (rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
@@ -63,10 +66,10 @@ while True:
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
     # detect faces in the grayscale frame
-    rects = detector.detectMultiScale(gray, scaleFactor=1.1,
-                                      minNeighbors=5, minSize=(30, 30),
-                                      flags=cv.CASCADE_SCALE_IMAGE)
-
+    # rects = ear_detector.detectMultiScale(gray, scaleFactor=1.1,
+    #                                   minNeighbors=5, minSize=(30, 30),
+    #                                   flags=cv.CASCADE_SCALE_IMAGE)
+    rects = ear_detector.detectMultiScale(gray, 1.3, 5)
 
     # loop over the face detections
     for (x, y, w, h) in rects:
@@ -74,8 +77,9 @@ while True:
         cv.rectangle(frame, (int(x), int(y)), (int(x + w), int(y + h)), palette['blue'])
         dlib_rect = dlib.rectangle(int(x), int(y), int(x + w),
                                    int(y + h))
-        print(dlib_rect)
-        shape = predictor(gray, dlib_rect)
+
+        # print(dlib_rect)
+        shape = landmarks_predictor(gray, dlib_rect)
         shape = face_utils.shape_to_np(shape)
 
         jaw = shape[jaw_start:jaw_end]
@@ -92,10 +96,10 @@ while True:
         rightEye = shape[rStart:rEnd]
         leftEAR = eye_aspect_ratio(leftEye)
         rightEAR = eye_aspect_ratio(rightEye)
-
+    
         # EAR average
         ear = (leftEAR + rightEAR) / 2.0
-
+    
         leftEyeHull = cv.convexHull(leftEye)
         rightEyeHull = cv.convexHull(rightEye)
         jaw_hull = cv.convexHull(jaw)
@@ -108,11 +112,11 @@ while True:
             if counter >= EAR_CONSEC_FRAMES:
                 if not alarm_on:
                     alarm_on = True
-
+    
                 cv.putText(frame, "ALERTA DE FADIGA!", (10, 30),
                            cv.FONT_HERSHEY_SIMPLEX, 0.7, palette['red'], 2)
                 # [ENVIA SINAL PARA A NUVEM]
-
+    
         else:
             counter = 0
             alarm_on = False
