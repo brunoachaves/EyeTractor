@@ -5,6 +5,8 @@ import argparse
 import imutils
 import time
 import cv2
+import time
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--prototxt", required=True,
@@ -26,6 +28,7 @@ time.sleep(2.0)
 
 # loop over the frames from the video stream
 while True:
+    begin = time.time()
     # grab the frame from the threaded video stream and resize it
     # to have a maximum width of 400 pixels
     frame = vs.read()
@@ -68,6 +71,7 @@ while True:
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
 
+    print(f'loop time = {np.round(time.time() - begin, 2)}')
     # if the `q` key was pressed, break from the loop
     if key == ord("q"):
         break
