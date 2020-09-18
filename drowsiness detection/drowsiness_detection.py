@@ -4,7 +4,8 @@ import argparse
 import time
 import dlib
 import cv2 as cv
-
+from azure.iot.device import IoTHubDeviceClient, Message
+from datetime import datetime
 
 # compute and return the euclidean distance between the two points
 def euclidean_dist(pt_a, pt_b):
@@ -26,6 +27,26 @@ def eye_aspect_ratio(eye):
 
     return ear
 
+# Metodo de monitoramento
+# eventType pode ser 'normal' ou 'desatencao'
+def send_message(eventType):
+    CAMERAID = "camera-01"
+    TODAY = datetime.now().isoformat()
+
+    msg_txt_formatted = MSG_TXT.format(TODAY=TODAY, EVENT=eventType, CAMERAID=CAMERAID)
+    message = Message(msg_txt_formatted)
+
+    print("Enviando mensagem: {}".format(message))
+    client.send_message(message)
+    print("Mensagem enviada com sucesso")
+
+
+# Cria instancia do client do iot hub
+CONNECTION_STRING = "HostName=eyetractor-hubiot.azure-devices.net;DeviceId=camera-01;SharedAccessKey=5pwN7TTPM7/V0bqXI+wEruGdCJi1o3h6QLEQRNwua+g="
+client = IoTHubDeviceClient.create_from_connection_string(CONNECTION_STRING)
+
+# Mensagem a ser enviada para o HubIot
+MSG_TXT = '{{"CameraId": "{CAMERAID}", "EventType": "{EVENT}", "EventDate": "{TODAY}" }}'
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--cascade", required=True,
@@ -99,7 +120,7 @@ while True:
                         None
                 cv.putText(frame, "ALERTA DE FADIGA!", (10, 30),
                            cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                # [ENVIA SINAL PARA A NUVEM]
+                send_message("desatencao")
 
         else:
             counter = 0
