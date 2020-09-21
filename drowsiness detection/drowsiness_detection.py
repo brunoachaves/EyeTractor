@@ -60,6 +60,11 @@ args = vars(ap.parse_args())
 # check to see if we are using Raspberry Pi IO as an alarm
 if args["alarm"] > 0:
     # import rasp IOs libs and set vars
+    import RPi.GPIO as GPIO
+    from time import sleep
+    GPIO.setmode(GPIO.BCM)
+    buzzer=23
+    GPIO.setup(buzzer,GPIO.OUT)
     print("[INFO] using Rasp IO alarm...")
 
 EAR_THRESH = 0.3
@@ -114,18 +119,22 @@ while True:
             counter += 1
             if counter >= EAR_CONSEC_FRAMES:
                 if not alarm_on:
+                    send_message("desatencao")
                     alarm_on = True
                     if args["alarm"] > 0:
                         # Set buzzer and LEDs
+                        GPIO.output(buzzer,GPIO.HIGH)
+                        print ("Beep")
                         None
                 cv.putText(frame, "ALERTA DE FADIGA!", (10, 30),
                            cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-                send_message("desatencao")
 
         else:
             counter = 0
             alarm_on = False
             if args["alarm"] > 0:
+                GPIO.output(buzzer,GPIO.LOW)
+                print ("no Beep")
                 # Reset buzzer and LEDs
                 None
 
