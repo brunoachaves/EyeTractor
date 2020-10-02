@@ -1,20 +1,184 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jul 31 03:00:36 2020
-
-@author: hp
-"""
 
 import cv2
 import numpy as np
 import math
-from face_detector import get_face_detector, find_faces
-from face_landmarks import get_landmark_model, detect_marks
+import tensorflow as tf
+from tensorflow import keras
+
+
+def get_square_box(box):
+    """Get a square box out of the given box, by expanding it."""
+    left_x = box[0]
+    top_y = box[1]
+    right_x = box[2]
+    bottom_y = box[3]
+
+    box_width = right_x - left_x
+    box_height = bottom_y - top_y
+
+    # Check if box is already a square. If not, make it a square.
+    diff = box_height - box_width
+    delta = int(abs(diff) / 2)
+
+    if diff == 0:                   # Already a square.
+        return box
+    elif diff > 0:                  # Height > width, a slim box.
+        left_x -= delta
+        right_x += delta
+        if diff % 2 == 1:
+            right_x += 1
+    else:                           # Width > height, a short box.
+        top_y -= delta
+        bottom_y += delta
+        if diff % 2 == 1:
+            bottom_y += 1
+
+    # Make sure box is always square.
+    assert ((right_x - left_x) == (bottom_y - top_y)), 'Box is not square.'
+
+    return [left_x, top_y, right_x, bottom_y]
+
+
+
+def move_box(box, offset):
+    """Move the box to direction specified by vector offset"""
+    left_x = box[0] + offset[0]
+    top_y = box[1] + offset[1]
+    right_x = box[2] + offset[0]
+    bottom_y = box[3] + offset[1]
+    return [left_x, top_y, right_x, bottom_y]
+
+
+def detect_marks(img, model, face):
+    """
+    Find the facial landmarks in an image from the faces
+
+    Parameters
+    ----------
+    img : np.uint8
+        The image in which landmarks are to be found
+    model : Tensorflow model
+        Loaded facial landmark model
+    face : list
+        Face coordinates (x, y, x1, y1) in which the landmarks are to be found
+
+    Returns
+    -------
+    marks : numpy array
+        facial landmark points
+
+    """
+
+    offset_y = int(abs((face[3] - face[1]) * 0.1))
+    box_moved = move_box(face, [0, offset_y])
+    facebox = get_square_box(box_moved)
+
+    face_img = img[facebox[1]: facebox[3],
+               facebox[0]: facebox[2]]
+    face_img = cv2.resize(face_img, (128, 128))
+    face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
+
+    # # Actual detection.
+    predictions = model.signatures["predict"](
+        tf.constant([face_img], dtype=tf.uint8))
+
+    # Convert predictions to landmarks.
+    marks = np.array(predictions['output']).flatten()[:136]
+    marks = np.reshape(marks, (-1, 2))
+
+    marks *= (facebox[2] - facebox[0])
+    marks[:, 0] += facebox[0]
+    marks[:, 1] += facebox[1]
+    marks = marks.astype(np.uint)
+
+    return marks
+
+
+
+
+def get_landmark_model(saved_model='models/pose_model'):
+    """
+    Get the facial landmark model.
+    Original repository: https://github.com/yinguobing/cnn-facial-landmark
+
+    Parameters
+    ----------
+    saved_model : string, optional
+        Path to facial landmarks model. The default is 'models/pose_model'.
+
+    Returns
+    -------
+    model : Tensorflow model
+        Facial landmarks model
+
+    """
+    model = keras.models.load_model(saved_model)
+    return model
+
+
+
+
+def get_face_detector(modelFile="models/res10_300x300_ssd_iter_140000.caffemodel",
+                      configFile="models/deploy.prototxt"):
+    """
+    Get the face detection caffe model of OpenCV's DNN module
+
+    Parameters
+    ----------
+    modelFile : string, optional
+        Path to model file. The default is "models/res10_300x300_ssd_iter_140000.caffemodel".
+    configFile : string, optional
+        Path to config file. The default is "models/deploy.prototxt".
+
+    Returns
+    -------
+    model : dnn_Net
+
+    """
+    modelFile = "models/res10_300x300_ssd_iter_140000.caffemodel"
+    configFile = "models/deploy.prototxt"
+    model = cv2.dnn.readNetFromCaffe(configFile, modelFile)
+    return model
+
+
+def find_faces(img, model):
+    """
+    Find the faces in an image
+
+    Parameters
+    ----------
+    img : np.uint8
+        Image to find faces from
+    model : dnn_Net
+        Face detection model
+
+    Returns
+    -------
+    faces : list
+        List of coordinates of the faces detected in the image
+
+    """
+    h, w = img.shape[:2]
+    blob = cv2.dnn.blobFromImage(cv2.resize(img, (300, 300)), 1.0,
+                                 (300, 300), (104.0, 177.0, 123.0))
+    model.setInput(blob)
+    res = model.forward()
+    faces = []
+    for i in range(res.shape[2]):
+        confidence = res[0, 0, i, 2]
+        if confidence > 0.5:
+            box = res[0, 0, i, 3:7] * np.array([w, h, w, h])
+            (x, y, x1, y1) = box.astype("int")
+            faces.append([x, y, x1, y1])
+    return faces
+
+
 
 def get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val):
     """Return the 3D points present as 2D for making annotation box"""
     point_3d = []
-    dist_coeffs = np.zeros((4,1))
+    dist_coeffs = np.zeros((4, 1))
     rear_size = val[0]
     rear_depth = val[1]
     point_3d.append((-rear_size, -rear_size, rear_depth))
@@ -41,41 +205,10 @@ def get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val):
     point_2d = np.int32(point_2d.reshape(-1, 2))
     return point_2d
 
+
 def draw_annotation_box(img, rotation_vector, translation_vector, camera_matrix,
-                        rear_size=300, rear_depth=0, front_size=500, front_depth=400,
                         color=(255, 255, 0), line_width=2):
-    """
-    Draw a 3D anotation box on the face for head pose estimation
 
-    Parameters
-    ----------
-    img : np.unit8
-        Original Image.
-    rotation_vector : Array of float64
-        Rotation Vector obtained from cv2.solvePnP
-    translation_vector : Array of float64
-        Translation Vector obtained from cv2.solvePnP
-    camera_matrix : Array of float64
-        The camera matrix
-    rear_size : int, optional
-        Size of rear box. The default is 300.
-    rear_depth : int, optional
-        The default is 0.
-    front_size : int, optional
-        Size of front box. The default is 500.
-    front_depth : int, optional
-        Front depth. The default is 400.
-    color : tuple, optional
-        The color with which to draw annotation box. The default is (255, 255, 0).
-    line_width : int, optional
-        line width of lines drawn. The default is 2.
-
-    Returns
-    -------
-    None.
-
-    """
-    
     rear_size = 1
     rear_depth = 0
     front_size = img.shape[1]
@@ -93,26 +226,6 @@ def draw_annotation_box(img, rotation_vector, translation_vector, camera_matrix,
     
     
 def head_pose_points(img, rotation_vector, translation_vector, camera_matrix):
-    """
-    Get the points to estimate head pose sideways    
-
-    Parameters
-    ----------
-    img : np.unit8
-        Original Image.
-    rotation_vector : Array of float64
-        Rotation Vector obtained from cv2.solvePnP
-    translation_vector : Array of float64
-        Translation Vector obtained from cv2.solvePnP
-    camera_matrix : Array of float64
-        The camera matrix
-
-    Returns
-    -------
-    (x, y) : tuple
-        Coordinates of line to estimate head pose
-
-    """
     rear_size = 1
     rear_depth = 0
     front_size = img.shape[1]
@@ -121,9 +234,9 @@ def head_pose_points(img, rotation_vector, translation_vector, camera_matrix):
     point_2d = get_2d_points(img, rotation_vector, translation_vector, camera_matrix, val)
     y = (point_2d[5] + point_2d[8])//2
     x = point_2d[2]
-    
     return (x, y)
-    
+
+
 face_model = get_face_detector()
 landmark_model = get_landmark_model()
 cap = cv2.VideoCapture(0)
@@ -148,8 +261,10 @@ camera_matrix = np.array(
                          [0, focal_length, center[1]],
                          [0, 0, 1]], dtype = "double"
                          )
+
 while True:
     ret, img = cap.read()
+
     if ret == True:
         faces = find_faces(img, face_model)
         for face in faces:
@@ -180,10 +295,10 @@ while True:
             p2 = ( int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
             x1, x2 = head_pose_points(img, rotation_vector, translation_vector, camera_matrix)
 
-            cv2.line(img, p1, p2, (0, 255, 255), 2)
-            cv2.line(img, tuple(x1), tuple(x2), (255, 255, 0), 2)
-            # for (x, y) in marks:
-            #     cv2.circle(img, (x, y), 4, (255, 255, 0), -1)
+            # cv2.line(img, p1, p2, (0, 255, 255), 2)
+            # cv2.line(img, tuple(x1), tuple(x2), (255, 255, 0), 2)
+            for (x, y) in marks:
+                cv2.circle(img, (x, y), 4, (255, 255, 0), -1)
             # cv2.putText(img, str(p1), p1, font, 1, (0, 255, 255), 1)
             try:
                 m = (p2[1] - p1[1])/(p2[0] - p1[0])
@@ -198,22 +313,9 @@ while True:
                 ang2 = 90
                 
                 # print('div by zero error')
-            if ang1 >= 48:
-                print('Head down')
-                cv2.putText(img, 'Head down', (30, 30), font, 2, (255, 255, 128), 3)
-            elif ang1 <= -48:
-                print('Head up')
-                cv2.putText(img, 'Head up', (30, 30), font, 2, (255, 255, 128), 3)
-             
-            if ang2 >= 48:
-                print('Head right')
-                cv2.putText(img, 'Head right', (90, 30), font, 2, (255, 255, 128), 3)
-            elif ang2 <= -48:
-                print('Head left')
-                cv2.putText(img, 'Head left', (90, 30), font, 2, (255, 255, 128), 3)
-            
-            cv2.putText(img, str(ang1), tuple(p1), font, 2, (128, 255, 255), 3)
-            cv2.putText(img, str(ang2), tuple(x1), font, 2, (255, 255, 128), 3)
+
+            cv2.putText(img, str(ang1), (30, 40), font, 2, (128, 255, 255), 3)  # Pitch
+            cv2.putText(img, str(ang2), (430, 40), font, 2, (255, 255, 128), 3)  # Yaw
         cv2.imshow('img', img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
