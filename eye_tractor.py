@@ -209,7 +209,7 @@ while True:
                             GPIO.output(buzzer, GPIO.HIGH)
                             print("Beep")
                             None
-                    cv.putText(frame, "ALERTA DE DSITRACAO!", (10, 30),
+                    cv.putText(frame, "ALERTA DE DISTRACAO!", (10, 30),
                                cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             else:
                 counter_dr = 0
