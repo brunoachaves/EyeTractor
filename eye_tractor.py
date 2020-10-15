@@ -80,8 +80,8 @@ SUP_FACE = 0.7
 DISTRACTION_THRESH = 1
 DR_CONSEC_FRAMES = 16
 
-MODEL_FILE = "res10_300x300_ssd_iter_140000.caffemodel"
-PROTOTXT_FILE = "deploy.prototxt"
+MODEL_FILE = "models/res10_300x300_ssd_iter_140000.caffemodel"
+PROTOTXT_FILE = "models/deploy.prototxt"
 
 counter_ear = 0
 counter_dr = 0
@@ -90,9 +90,9 @@ ear = 0
 dr = 0
 
 print("[INFO] loading models")
-predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
-face_cascade = cv.CascadeClassifier('haarcascade_frontalface_default.xml')
-eye_cascade = cv.CascadeClassifier('haarcascade_eye.xml')
+predictor = dlib.shape_predictor('models/shape_predictor_68_face_landmarks.dat')
+face_cascade = cv.CascadeClassifier('models/haarcascade_frontalface_default.xml')
+eye_cascade = cv.CascadeClassifier('models/haarcascade_eye.xml')
 net = cv.dnn.readNetFromCaffe(PROTOTXT_FILE, MODEL_FILE)
 
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
