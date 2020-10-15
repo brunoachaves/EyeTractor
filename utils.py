@@ -48,9 +48,11 @@ def send_message(eventType):
     message = Message(msg_txt_formatted)
 
     print("Enviando mensagem: {}".format(message))
-    client.send_message(message)
-    print("Mensagem enviada com sucesso")
-
+    try:
+        client.send_message(message)
+        print("[Info] Mensagem enviada com sucesso")
+    except:
+        print("[Erro] Falha ao enviar a mensagem")
 
 # Cria instancia do client do iot hub
 CONNECTION_STRING = "HostName=eyetractor-hubiot.azure-devices.net;DeviceId=camera-01;SharedAccessKey=5pwN7TTPM7/V0bqXI+wEruGdCJi1o3h6QLEQRNwua+g="
