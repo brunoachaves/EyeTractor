@@ -34,15 +34,15 @@ def gen(camera):
         # get camera frame
         frame, _, btn_drive = camera.run(is_rasp=is_rasp, use_cloud=use_cloud)
 
-        if is_rasp and btn_drive:
-            shutdown_server()
-
         # encode OpenCV raw frame to jpg and displaying it
         _, jpeg = cv.imencode('.jpg', frame)
         frame = jpeg.tobytes()
 
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+        if is_rasp and btn_drive:
+            shutdown_server()
 
 
 @app.route('/shutdown')
