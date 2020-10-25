@@ -2,6 +2,7 @@ from flask import Flask, render_template, Response, request
 from utils import VideoCamera
 
 import cv2 as cv
+import time
 
 is_rasp = True
 use_cloud = True
@@ -70,6 +71,7 @@ def video_feed():
 
 if __name__ == '__main__':
     while True:
+        time.sleep(2)
         print('[INFO] modo direção')
         cmd = driver_mode(video_camera)
         if cmd == 'q':
