@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, redirect
 from utils import VideoCamera
 
 import cv2 as cv
@@ -42,7 +42,7 @@ def gen(camera):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
         if is_rasp and btn_drive:
-            shutdown_server()
+            return redirect('/shutdown')
 
 
 @app.route('/shutdown')
