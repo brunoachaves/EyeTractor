@@ -115,13 +115,14 @@ class VideoCamera(object):
         self.status_color = ['red', 'green']
 
         if is_rasp:
-            import RPi.GPIO as GPIO
-            GPIO.setmode(GPIO.BCM)
+            import RPi.GPIO as gpio
+            self.gpio = gpio
+            self.gpio.setmode(self.gpio.BCM)
             self.buzzer = 23
             self.green_led = 24
             self.button1 = 25
             self.button2 = 8
-            GPIO.setup(self.buzzer, GPIO.OUT)
+            self.gpio.setup(self.buzzer, self.gpio.OUT)
             print("[INFO] using Rasp IO alarm...")
 
     def clear_bar(self):
@@ -238,8 +239,8 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Reset buzzer and LEDs
-                GPIO.output(self.buzzer, GPIO.LOW)
-                GPIO.output(self.green_led, GPIO.LOW)
+                self.gpio.output(self.buzzer, self.gpio.LOW)
+                self.gpio.output(self.green_led, self.gpio.LOW)
 
         elif status == DRIVER_DETECTED:
             print('[INFO] MOTORISTA ATENTO')
@@ -247,7 +248,7 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['green'], 2)
             if is_rasp:
                 # Set green LED
-                GPIO.output(self.green_led, GPIO.HIGH)
+                self.gpio.output(self.green_led, self.gpio.HIGH)
 
         elif status == DROWSINESS:
             print('[INFO] ALERTA DE FADIGA!')
@@ -255,8 +256,8 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Set buzzer and LEDs
-                GPIO.output(self.buzzer, GPIO.HIGH)
-                GPIO.output(self.green_led, GPIO.HIGH)
+                self.gpio.output(self.buzzer, self.gpio.HIGH)
+                self.gpio.output(self.green_led, self.gpio.HIGH)
 
         elif status == DISTRACTION:
             print('[INFO] ALERTA DE DISTRACAO!')
@@ -264,8 +265,8 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Set buzzer and LEDs
-                GPIO.output(self.buzzer, GPIO.HIGH)
-                GPIO.output(self.green_led, GPIO.HIGH)
+                self.gpio.output(self.buzzer, self.gpio.HIGH)
+                self.gpio.output(self.green_led, self.gpio.HIGH)
 
         cv.putText(self.bar, f"EAR: {np.round(self.ear, 2)}", (10, 90),
                    cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete[self.status_color[status == 0]], 2)
