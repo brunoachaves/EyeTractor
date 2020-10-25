@@ -2,16 +2,18 @@ from flask import Flask, render_template, Response, request
 from utils import VideoCamera
 
 import cv2 as cv
+import os
 
 app = Flask(__name__)
 video_camera = VideoCamera()
 is_rasp = False
+show_frame = True
 
 
 def driver_mode(camera):
     while True:
         img = camera.run()
-        if not is_rasp:
+        if show_frame:
             cv.imshow('frame', img)
             key = cv.waitKey(1) & 0xFF
             # if the `q` key was pressed, break from the loop
@@ -21,12 +23,17 @@ def driver_mode(camera):
             elif key == ord('q'):
                 cv.destroyAllWindows()
                 return 'q'
-        else:
-            pass  # rasp commands to choice the run mode
+        if is_rasp:
+            if key == ord("c"):
+                cv.destroyAllWindows()
+                return 'c'
 
 
 def gen(camera):
     while True:
+        if is_rasp:
+            if True:
+                shutdown_server()
         # get camera frame
         frame = camera.run()
         # encode OpenCV raw frame to jpg and displaying it

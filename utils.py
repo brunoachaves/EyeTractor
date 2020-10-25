@@ -77,11 +77,18 @@ EAR_THRESH = 0.3
 EAR_CONSEC_FRAMES = 16
 CONFIDENCE_FACE_DNN = 0.5  # minimum probability to filter weak detections
 SUP_FACE = 0.7
-DISTRACTION_THRESH = 1
+DR_THRESH = 1
 DR_CONSEC_FRAMES = 16
 
 MODEL_FILE = "models/res10_300x300_ssd_iter_140000.caffemodel"
 PROTOTXT_FILE = "models/deploy.prototxt"
+
+# status types
+WITHOUT_DRIVER = -1
+DRIVER_DETECTED = 0
+DROWSINESS = 1
+DISTRACTION = 2
+
 
 print("[INFO] loading models")
 predictor = dlib.shape_predictor('models/shape_predictor_68_face_landmarks.dat')
@@ -135,10 +142,10 @@ class VideoCamera(object):
                                               minNeighbors=5, minSize=(30, 30),
                                               flags=cv.CASCADE_SCALE_IMAGE)
 
-        status = 0
+        status = WITHOUT_DRIVER
         frontal_face_flag = False
         for (x, y, w, h) in rects:
-            frontal_face_flag = True
+            status = DRIVER_DETECTED
             self.dr = 0
             rect = dlib.rectangle(int(x), int(y), int(x + w), int(y + h))
             cv.rectangle(frame, (int(x), int(y)), (int(x + w), int(y + h)), (255, 0, 0), 2)
@@ -161,11 +168,11 @@ class VideoCamera(object):
             if self.ear < EAR_THRESH:
                 self.counter_ear += 1
                 if self.counter_ear >= EAR_CONSEC_FRAMES:
-                    status = 1
+                    status = DROWSINESS
                     if not self.alarm_on:
                         self.alarm_on = True
                         if is_rasp:
-                            send_message("desatencao")
+                            send_message("fadiga")
                             # Set buzzer and LEDs
                             GPIO.output(buzzer, GPIO.HIGH)
                             print("Beep")
@@ -180,7 +187,7 @@ class VideoCamera(object):
                     None
             break
 
-        if not frontal_face_flag:
+        if status == WITHOUT_DRIVER:
             self.ear = 0
             (h, w) = frame.shape[:2]
             blob = cv.dnn.blobFromImage(cv.resize(frame, (300, 300)), 1.0,
@@ -193,6 +200,7 @@ class VideoCamera(object):
                 if confidence < CONFIDENCE_FACE_DNN:
                     continue
 
+                status = DRIVER_DETECTED
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                 (startX, startY, endX, endY) = box.astype("int")
 
@@ -213,14 +221,14 @@ class VideoCamera(object):
                     eyes_pos_x.append(ex + (ew / 2))
 
                 self.dr = distraction_ratio(eyes_pos_x)
-                if self.dr is None or self.dr < DISTRACTION_THRESH:
+                if self.dr is None or self.dr < DR_THRESH:
                     self.counter_dr += 1
                     if self.counter_dr >= DR_CONSEC_FRAMES:
-                        status = 2
+                        status = DISTRACTION
                         if not self.alarm_on:
                             self.alarm_on = True
                             if is_rasp:
-                                send_message("desatencao")
+                                send_message("distracao")
                                 # Set buzzer and LEDs
                                 GPIO.output(buzzer, GPIO.HIGH)
                                 print("Beep")
@@ -229,18 +237,28 @@ class VideoCamera(object):
                     self.counter_dr = 0
                     self.alarm_on = False
                     if is_rasp:
+                        # Reset buzzer and LEDs
                         GPIO.output(buzzer, GPIO.LOW)
                         print("no Beep")
-                        # Reset buzzer and LEDs
-                        None
 
-        if status == 0:
+        if status == WITHOUT_DRIVER:
+            print('[INFO] MOTORISTA NAO DETECTADO')
+            cv.putText(self.bar, "MOTORISTA NAO DETECTADO", (10, 180),
+                       cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
+            if is_rasp:
+                # Reset buzzer and LEDs
+                GPIO.output(buzzer, GPIO.LOW)
+                print("Beep off")
+        elif status == DRIVER_DETECTED:
+            print('[INFO] MOTORISTA ATENTO')
             cv.putText(self.bar, "MOTORISTA ATENTO", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['green'], 2)
-        elif status == 1:
+        elif status == DROWSINESS:
+            print('[INFO] ALERTA DE FADIGA!')
             cv.putText(self.bar, "ALERTA DE FADIGA!", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
-        elif status == 2:
+        elif status == DISTRACTION:
+            print('[INFO] ALERTA DE DISTRACAO!')
             cv.putText(self.bar, "ALERTA DE DISTRACAO!", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
 
