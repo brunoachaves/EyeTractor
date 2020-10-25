@@ -30,9 +30,6 @@ def driver_mode(camera):
 
 def gen(camera):
     while True:
-        if is_rasp:
-            if True:
-                shutdown_server()
         # get camera frame
         frame, _, btn_drive = camera.run(is_rasp=is_rasp, use_cloud=use_cloud)
 
