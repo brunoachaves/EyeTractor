@@ -4,7 +4,7 @@ from utils import VideoCamera
 import cv2 as cv
 import os
 
-is_rasp = False
+is_rasp = True
 show_frame = True
 app = Flask(__name__)
 video_camera = VideoCamera(is_rasp=is_rasp)
@@ -12,7 +12,7 @@ video_camera = VideoCamera(is_rasp=is_rasp)
 
 def driver_mode(camera):
     while True:
-        img = camera.run()
+        img = camera.run(is_rasp=is_rasp)
         if show_frame:
             cv.imshow('eye tractor', img)
             key = cv.waitKey(1) & 0xFF
@@ -35,7 +35,7 @@ def gen(camera):
             if True:
                 shutdown_server()
         # get camera frame
-        frame = camera.run()
+        frame = camera.run(is_rasp=is_rasp)
         # encode OpenCV raw frame to jpg and displaying it
         _, jpeg = cv.imencode('.jpg', frame)
         frame = jpeg.tobytes()
