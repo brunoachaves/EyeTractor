@@ -6,8 +6,8 @@ import time
 import requests
 
 
-is_rasp = False
-use_cloud = False
+is_rasp = True
+use_cloud = True
 show_frame = True
 app = Flask(__name__)
 video_camera = VideoCamera(is_rasp=is_rasp)
@@ -43,7 +43,7 @@ def gen(camera):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-        if (is_rasp and btn_drive) or True:
+        if is_rasp and btn_drive:
             requests.post('http://localhost:5000/shutdown')
 
 
