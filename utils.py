@@ -74,11 +74,11 @@ client = IoTHubDeviceClient.create_from_connection_string(CONNECTION_STRING)
 MSG_TXT = '{{"CameraId": "{CAMERAID}", "EventType": "{EVENT}", "EventDate": "{TODAY}" }}'
 
 EAR_THRESH = 0.3
-EAR_CONSEC_FRAMES = 16
+EAR_CONSEC_FRAMES = 5
 CONFIDENCE_FACE_DNN = 0.5  # minimum probability to filter weak detections
 SUP_FACE = 0.7
 DR_THRESH = 1
-DR_CONSEC_FRAMES = 16
+DR_CONSEC_FRAMES = 4
 
 MODEL_FILE = "models/res10_300x300_ssd_iter_140000.caffemodel"
 PROTOTXT_FILE = "models/deploy.prototxt"
@@ -142,7 +142,7 @@ class VideoCamera(object):
         self.cap.release()
     '''
 
-    def run(self, is_rasp=False):
+    def run(self, is_rasp=False, use_cloud=False):
 
         begin = time.time()
         ret, frame = self.cap.read()
@@ -185,7 +185,8 @@ class VideoCamera(object):
                     status = DROWSINESS
                     if not self.alarm_on:
                         self.alarm_on = True
-                        send_message("fadiga")
+                        if use_cloud:
+                            send_message("fadiga")
             else:
                 self.counter_ear = 0
                 self.alarm_on = False
@@ -231,7 +232,8 @@ class VideoCamera(object):
                         status = DISTRACTION
                         if not self.alarm_on:
                             self.alarm_on = True
-                            send_message("distracao")
+                            if use_cloud:
+                                send_message("distracao")
                 else:
                     self.counter_dr = 0
                     self.alarm_on = False
@@ -250,8 +252,9 @@ class VideoCamera(object):
             cv.putText(self.bar, "MOTORISTA ATENTO", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['green'], 2)
             if is_rasp:
-                # Set green LED
+                # Set green LED and reset buzzer and red LED
                 self.gpio.output(self.green_led, self.gpio.HIGH)
+                self.gpio.output(self.buzzer_red_led, self.gpio.LOW)
 
         elif status == DROWSINESS:
             print('[INFO] ALERTA DE FADIGA!')
@@ -280,8 +283,11 @@ class VideoCamera(object):
         img_display = cv.hconcat((frame, orig))
         result_display = cv.vconcat((img_display, self.bar))
         print(f'loop time = {np.round(time.time() - begin, 2)}')
-        return result_display
 
+        if is_rasp:
+            return result_display, self.gpio.input(self.button1), self.gpio.input(self.button2)
+        else:
+            return result_display, None, None
 
 if __name__ == '__main__':
     vc = VideoCamera()
