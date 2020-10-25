@@ -118,12 +118,15 @@ class VideoCamera(object):
             import RPi.GPIO as gpio
             self.gpio = gpio
             self.gpio.setmode(self.gpio.BCM)
-            self.buzzer = 23
+            self.buzzer_red_led = 23
             self.green_led = 24
             self.button1 = 25
             self.button2 = 8
-            self.gpio.setup(self.buzzer, self.gpio.OUT)
-            print("[INFO] using Rasp IO alarm...")
+            self.gpio.setup(self.buzzer_red_led, self.gpio.OUT)
+            self.gpio.setup(self.green_led, self.gpio.OUT)
+            self.gpio.setup(self.button1, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+            self.gpio.setup(self.button2, gpio.IN, pull_up_down=gpio.PUD_DOWN)
+            print("[INFO] using Rasp IO")
 
     def clear_bar(self):
         self.bar = np.ones((200, 800, 3)).astype('uint8')
@@ -239,7 +242,7 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Reset buzzer and LEDs
-                self.gpio.output(self.buzzer, self.gpio.LOW)
+                self.gpio.output(self.buzzer_red_led, self.gpio.LOW)
                 self.gpio.output(self.green_led, self.gpio.LOW)
 
         elif status == DRIVER_DETECTED:
@@ -256,7 +259,7 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Set buzzer and LEDs
-                self.gpio.output(self.buzzer, self.gpio.HIGH)
+                self.gpio.output(self.buzzer_red_led, self.gpio.HIGH)
                 self.gpio.output(self.green_led, self.gpio.HIGH)
 
         elif status == DISTRACTION:
@@ -265,7 +268,7 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Set buzzer and LEDs
-                self.gpio.output(self.buzzer, self.gpio.HIGH)
+                self.gpio.output(self.buzzer_red_led, self.gpio.HIGH)
                 self.gpio.output(self.green_led, self.gpio.HIGH)
 
         cv.putText(self.bar, f"EAR: {np.round(self.ear, 2)}", (10, 90),
