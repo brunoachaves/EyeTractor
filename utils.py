@@ -101,7 +101,7 @@ net = cv.dnn.readNetFromCaffe(PROTOTXT_FILE, MODEL_FILE)
 
 
 class VideoCamera(object):
-    def __init__(self):
+    def __init__(self, is_rasp=False):
         print("[INFO] starting video stream thread...")
         self.cap = cv.VideoCapture(0)
         time.sleep(2.0)
@@ -113,6 +113,16 @@ class VideoCamera(object):
         self.dr = 0
         self.clear_bar()
         self.status_color = ['red', 'green']
+
+        if is_rasp:
+            import RPi.GPIO as GPIO
+            GPIO.setmode(GPIO.BCM)
+            self.buzzer = 23
+            self.green_led = 24
+            self.button1 = 25
+            self.button2 = 8
+            GPIO.setup(self.buzzer, GPIO.OUT)
+            print("[INFO] using Rasp IO alarm...")
 
     def clear_bar(self):
         self.bar = np.ones((200, 800, 3)).astype('uint8')
@@ -171,20 +181,10 @@ class VideoCamera(object):
                     status = DROWSINESS
                     if not self.alarm_on:
                         self.alarm_on = True
-                        if is_rasp:
-                            send_message("fadiga")
-                            # Set buzzer and LEDs
-                            GPIO.output(buzzer, GPIO.HIGH)
-                            print("Beep")
-                            None
+                        send_message("fadiga")
             else:
                 self.counter_ear = 0
                 self.alarm_on = False
-                if is_rasp:
-                    GPIO.output(buzzer, GPIO.LOW)
-                    print("no Beep")
-                    # Reset buzzer and LEDs
-                    None
             break
 
         if status == WITHOUT_DRIVER:
@@ -227,19 +227,10 @@ class VideoCamera(object):
                         status = DISTRACTION
                         if not self.alarm_on:
                             self.alarm_on = True
-                            if is_rasp:
-                                send_message("distracao")
-                                # Set buzzer and LEDs
-                                GPIO.output(buzzer, GPIO.HIGH)
-                                print("Beep")
-                                None
+                            send_message("distracao")
                 else:
                     self.counter_dr = 0
                     self.alarm_on = False
-                    if is_rasp:
-                        # Reset buzzer and LEDs
-                        GPIO.output(buzzer, GPIO.LOW)
-                        print("no Beep")
 
         if status == WITHOUT_DRIVER:
             print('[INFO] MOTORISTA NAO DETECTADO')
@@ -247,20 +238,34 @@ class VideoCamera(object):
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
             if is_rasp:
                 # Reset buzzer and LEDs
-                GPIO.output(buzzer, GPIO.LOW)
-                print("Beep off")
+                GPIO.output(self.buzzer, GPIO.LOW)
+                GPIO.output(self.green_led, GPIO.LOW)
+
         elif status == DRIVER_DETECTED:
             print('[INFO] MOTORISTA ATENTO')
             cv.putText(self.bar, "MOTORISTA ATENTO", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['green'], 2)
+            if is_rasp:
+                # Set green LED
+                GPIO.output(self.green_led, GPIO.HIGH)
+
         elif status == DROWSINESS:
             print('[INFO] ALERTA DE FADIGA!')
             cv.putText(self.bar, "ALERTA DE FADIGA!", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
+            if is_rasp:
+                # Set buzzer and LEDs
+                GPIO.output(self.buzzer, GPIO.HIGH)
+                GPIO.output(self.green_led, GPIO.HIGH)
+
         elif status == DISTRACTION:
             print('[INFO] ALERTA DE DISTRACAO!')
             cv.putText(self.bar, "ALERTA DE DISTRACAO!", (10, 180),
                        cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete['red'], 2)
+            if is_rasp:
+                # Set buzzer and LEDs
+                GPIO.output(self.buzzer, GPIO.HIGH)
+                GPIO.output(self.green_led, GPIO.HIGH)
 
         cv.putText(self.bar, f"EAR: {np.round(self.ear, 2)}", (10, 90),
                    cv.FONT_HERSHEY_SIMPLEX, 0.7, pallete[self.status_color[status == 0]], 2)

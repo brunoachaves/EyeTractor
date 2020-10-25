@@ -4,17 +4,17 @@ from utils import VideoCamera
 import cv2 as cv
 import os
 
-app = Flask(__name__)
-video_camera = VideoCamera()
 is_rasp = False
 show_frame = True
+app = Flask(__name__)
+video_camera = VideoCamera(is_rasp=is_rasp)
 
 
 def driver_mode(camera):
     while True:
         img = camera.run()
         if show_frame:
-            cv.imshow('frame', img)
+            cv.imshow('eye tractor', img)
             key = cv.waitKey(1) & 0xFF
             # if the `q` key was pressed, break from the loop
             if key == ord("c"):
