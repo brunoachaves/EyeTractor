@@ -1,11 +1,13 @@
-from flask import Flask, render_template, Response, request, redirect
+from flask import Flask, render_template, Response, request
 from utils import VideoCamera
 
 import cv2 as cv
 import time
+import requests
 
-is_rasp = True
-use_cloud = True
+
+is_rasp = False
+use_cloud = False
 show_frame = True
 app = Flask(__name__)
 video_camera = VideoCamera(is_rasp=is_rasp)
@@ -41,11 +43,11 @@ def gen(camera):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-        if is_rasp and btn_drive:
-            return redirect('/shutdown')
+        if (is_rasp and btn_drive) or True:
+            requests.post('http://localhost:5000/shutdown')
 
 
-@app.route('/shutdown')
+@app.route('/shutdown', methods=['POST'])
 def shutdown_server():
     print("[INFO] encerrando servidor flask ...")
     shutdown = request.environ.get('werkzeug.server.shutdown')
