@@ -17,10 +17,6 @@ Tabela de conteúdos
    * [Tecnologias](#tecnologias)
 <!--te-->
 
-<h4 align="center">
-EyeTractor em desenvolvimento
-</h4>
-
 ### Features
 
 - [x] Localização de rosto na imagem
@@ -28,7 +24,7 @@ EyeTractor em desenvolvimento
 - [x] Detecção de distração
 - [x] Acionamento de uma saída digital da Raspberry Pi 4 para ativar o alarme sonoro e luminoso
 - [x] Envio de dados para monitoramento por dashboard em nuvem
-- [ ] Visualização, por celular, da imagem que está sendo processada pelo sistema embarcado
+- [x ] Visualização, por celular, da imagem que está sendo processada pelo sistema embarcado
 
 ![SignUp Mobile](assets/distraction.png)
 
@@ -51,11 +47,8 @@ $ git clone https://github.com/brunoachaves/EyeTractor.git
 # Acesse a pasta do projeto no terminal/cmd
 $ cd EyeTractor
 
-# Para executar no desktop
+# Para executar
 $ python3 eye_tractor.py
-
-# Para executar na Raspberry Pi
-$ python3 eye_tractor.py -a 1
 ```
 
 ### Tecnologias
@@ -66,7 +59,7 @@ As seguintes ferramentas foram usadas na construção do projeto:
 - Deep Neural Networks
 - Facial Landmarks
 - Azure IoT Hub
-
+- Flask app
 
 
 ### Autores
