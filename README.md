@@ -1,6 +1,6 @@
 # EyeTractor
 
-## Sistema dedicado à detecção de fadiga e distração de motoristas, utilizando técnicas de gaze tracking baseadas em redes neurais.
+## Sistema dedicado à detecção de fadiga e distração de motoristas, utilizando técnicas de visão computacional e redes neurais.
 
 ![Badge](https://img.shields.io/github/issues/brunoachaves/EyeTractor)
 ![Badge](https://img.shields.io/github/forks/brunoachaves/EyeTractor)
@@ -26,8 +26,8 @@ Tabela de conteúdos
 - [x] Envio de dados para monitoramento por dashboard em nuvem
 - [x] Visualização, por celular, da imagem que está sendo processada pelo sistema embarcado
 
-![SignUp Mobile](assets/distraction.png)
 
+![SignUp Mobile](assets/fadiga.gif)
 ### Pré-requisitos
 
 Antes de começar, você vai precisar ter instalado ** Python 3.7.3** com os seguintes módulos:
