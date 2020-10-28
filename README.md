@@ -32,11 +32,13 @@ Tabela de conteúdos
 
 Antes de começar, você vai precisar ter instalado ** Python 3.7.3** com os seguintes módulos:
 
-- OpenCV 4.4.0
-- Dlib 19.21.0
-- Numpy 1.19.2
-- Imutils 0.5.3
 - Azure 0.11.1
+- Dlib 19.21.0
+- Flask 1.1.1
+- Imutils 0.5.3
+- Numpy 1.19.2
+- OpenCV 4.4.0
+
 
 ### Executando o software
 
@@ -58,8 +60,8 @@ As seguintes ferramentas foram usadas na construção do projeto:
 - Haar Cascades
 - Deep Neural Networks
 - Facial Landmarks
-- Azure IoT Hub
-- Flask app
+- Cloud
+- Web app
 
 
 ### Autores
