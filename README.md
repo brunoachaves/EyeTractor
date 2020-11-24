@@ -11,9 +11,9 @@ Tabela de conteúdos
 =================
 <!--ts-->
    * [Sobre](#Sobre)
-   * [Tabela de Conteudo](#tabela-de-conteudo)
-   * [Instalação](#instalacao)
-   * [Pre Requisitos](#pre-requisitos)
+   * [Features](#tabela-de-conteudo)
+   * [Pré-requisitos](#Pré-requisitos)
+   * [Executando o software](#Executando o software
    * [Tecnologias](#tecnologias)
 <!--te-->
 
@@ -27,7 +27,7 @@ Tabela de conteúdos
 - [x] Visualização, por celular, da imagem que está sendo processada pelo sistema embarcado
 
 
-![SignUp Mobile](assets/fadiga.gif)
+![SignUp Mobile](assets/eye_tractor.gif)
 ### Pré-requisitos
 
 Antes de começar, você vai precisar ter instalado ** Python 3.7.3** com os seguintes módulos:
@@ -50,15 +50,15 @@ $ git clone https://github.com/brunoachaves/EyeTractor.git
 $ cd EyeTractor
 
 # Para executar
-$ python3 eye_tractor.py
+$ python3 server.py
 ```
 
-### Tecnologias
+### Técnicas utilizadas
 
-As seguintes ferramentas foram usadas na construção do projeto:
+As seguintes técnicas foram usadas na construção do projeto:
 
 - Haar Cascades
-- Deep Neural Networks
+- Deep Neural Networks (ResNet10)
 - Facial Landmarks
 - Cloud
 - Web app

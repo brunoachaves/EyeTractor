@@ -6,7 +6,7 @@ import time
 import requests
 
 
-is_rasp = True
+is_rasp = False
 use_cloud = True
 show_frame = True
 app = Flask(__name__)

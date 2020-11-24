@@ -289,7 +289,14 @@ class VideoCamera(object):
         else:
             return result_display, None, None
 
+
 if __name__ == '__main__':
     vc = VideoCamera()
     while True:
-        vc.get_frame()
+        img_out, _, _ = vc.run()
+        cv.imshow('eye tractor', img_out)
+        key = cv.waitKey(1) & 0xFF
+        # if the `q` key was pressed, break from the loop
+        if key == ord('q'):
+            cv.destroyAllWindows()
+            break
