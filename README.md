@@ -10,10 +10,9 @@
 Tabela de conteúdos
 =================
 <!--ts-->
-   * [Sobre](#Sobre)
-   * [Features](#tabela-de-conteudo)
+   * [Features](#Features)
    * [Pré-requisitos](#Pré-requisitos)
-   * [Executando o software](#Executando o software
+   * [Executando o software](#Executando-o-software)
    * [Tecnologias](#tecnologias)
 <!--te-->
 
