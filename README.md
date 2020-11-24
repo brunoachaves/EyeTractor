@@ -13,7 +13,8 @@ Tabela de conteúdos
    * [Features](#Features)
    * [Pré-requisitos](#Pré-requisitos)
    * [Executando o software](#Executando-o-software)
-   * [Tecnologias](#tecnologias)
+   * [Técnicas utilizadas](#Técnicas-utilizadas)
+   * [Autores](#Autores)
 <!--te-->
 
 ### Features
@@ -23,7 +24,7 @@ Tabela de conteúdos
 - [x] Detecção de distração
 - [x] Acionamento de uma saída digital da Raspberry Pi 4 para ativar o alarme sonoro e luminoso
 - [x] Envio de dados para monitoramento por dashboard em nuvem
-- [x] Visualização, por celular, da imagem que está sendo processada pelo sistema embarcado
+- [x] Visualização, por aplicação web, da imagem que está sendo processada pelo sistema embarcado
 
 
 ![SignUp Mobile](assets/eye_tractor.gif)
